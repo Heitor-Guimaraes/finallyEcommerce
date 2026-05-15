@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -27,5 +25,6 @@ public class UsuarioRequestDto {
     @NotBlank
     private String senha;
 
+    private String fotoUrl;
 
 }

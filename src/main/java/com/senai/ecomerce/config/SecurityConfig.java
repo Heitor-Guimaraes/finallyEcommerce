@@ -34,12 +34,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login", "/usuario/user").permitAll()
+                        .requestMatchers("/imagens/**").permitAll()
                         .requestMatchers("/usuario/admin").hasRole("ADMIN")
+                        .requestMatchers("/usuario/user/*/imagem").authenticated()
+                        .requestMatchers("/produto/user/*/imagem").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }
-
-

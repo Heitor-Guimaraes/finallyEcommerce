@@ -8,8 +8,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +20,9 @@ public class ProdutoService {
 
     @Autowired
     private ProdutoRepository produtoRepository;
+
+    @Autowired
+    private ImageStorageService imageStorageService;
 
     public List<ProdutoResponseDto> findAll() {
         return produtoRepository.findAll().stream().map(ProdutoResponseDto::new).toList();
@@ -46,6 +51,17 @@ public class ProdutoService {
         produto.setDescricao(dto.getDescricao());
         produto.setPreco(dto.getPreco());
         produto.setImgUrl(dto.getImgUrl());
+
+        produtoRepository.save(produto);
+        return new ProdutoResponseDto(produto);
+    }
+
+    public ProdutoResponseDto adicionarImagem(UUID id, MultipartFile foto) throws IOException {
+        Produto produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não encontrado"));
+
+        String caminhoFoto = imageStorageService.savePhoto(foto);
+        produto.setImgUrl(caminhoFoto);
 
         produtoRepository.save(produto);
         return new ProdutoResponseDto(produto);

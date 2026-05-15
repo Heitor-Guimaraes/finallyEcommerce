@@ -22,12 +22,14 @@ public class UsuarioResponseDto {
 
     private String telefone;
 
+    private String fotoUrl;
 
     public UsuarioResponseDto (Usuario usuario){
         this.email = usuario.getEmail();
         this.id = usuario.getId();
         this.nome = usuario.getNome();
         this.telefone = usuario.getTelefone();
+        this.fotoUrl = usuario.getFotoUrl();
 
     }
 

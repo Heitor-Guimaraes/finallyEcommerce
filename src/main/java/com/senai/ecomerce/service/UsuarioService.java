@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,12 +23,14 @@ public class UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private ImageStorageService imageStorageService;
+
     private final PasswordEncoder passwordEncoder;
 
     public UsuarioService(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
-
 
     public List<UsuarioResponseDto> findAll() {
         return usuarioRepository.findAll().stream().map(UsuarioResponseDto::new).toList();
@@ -48,6 +52,7 @@ public class UsuarioService {
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
         usuario.setNome(dto.getNome());
         usuario.setTelefone(dto.getTelefone());
+        usuario.setFotoUrl(dto.getFotoUrl());
         usuario.setRoles(Roles.USER);
 
         usuarioRepository.save(usuario);
@@ -67,6 +72,18 @@ public class UsuarioService {
         usuario.setEmail(emailNovo);
         usuario.setTelefone(dto.getTelefone());
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
+        usuario.setFotoUrl(dto.getFotoUrl());
+
+        usuarioRepository.save(usuario);
+        return new UsuarioResponseDto(usuario);
+    }
+
+    public UsuarioResponseDto adicionarImagem(UUID id, MultipartFile foto) throws IOException {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        String caminhoFoto = imageStorageService.savePhoto(foto);
+        usuario.setFotoUrl(caminhoFoto);
 
         usuarioRepository.save(usuario);
         return new UsuarioResponseDto(usuario);

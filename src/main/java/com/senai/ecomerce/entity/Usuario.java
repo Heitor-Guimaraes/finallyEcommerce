@@ -17,7 +17,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class    Usuario {
+public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -31,6 +31,8 @@ public class    Usuario {
     private String telefone;
 
     private String senha;
+
+    private String fotoUrl;
 
     @Enumerated(EnumType.STRING)
     private Roles roles;

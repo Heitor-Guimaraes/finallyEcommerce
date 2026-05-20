@@ -9,11 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.Authentication;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-
 @RestController
 @RequestMapping("usuario")
 public class UsuarioController {
@@ -55,8 +55,21 @@ public class UsuarioController {
     }
 
     @GetMapping("/admin")
-    public String admin(){
-        return "Acesso ADMIN";
+    public ResponseEntity<?> admin(Authentication authentication){
+        String adminEmail = authentication != null ? authentication.getName() : "anonymous";
+        return ResponseEntity.ok(usuarioService.adminInfo(adminEmail));
+    }
+
+    @PutMapping("/admin/promote/{id}")
+    public UsuarioResponseDto promoteToAdmin(@PathVariable UUID id){
+        return usuarioService.promoteToAdmin(id);
+    }
+
+    @PostMapping("/admin")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UsuarioResponseDto createAdmin(@Valid @RequestBody UsuarioRequestDto dto){
+        return usuarioService.createAdmin(dto);
     }
 
 }
+

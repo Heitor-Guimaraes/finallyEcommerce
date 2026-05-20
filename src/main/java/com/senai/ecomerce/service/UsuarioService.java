@@ -1,5 +1,6 @@
 package com.senai.ecomerce.service;
 
+import com.senai.ecomerce.dto.AdminInfoResponseDto;
 import com.senai.ecomerce.dto.UsuarioRequestDto;
 import com.senai.ecomerce.dto.UsuarioResponseDto;
 import com.senai.ecomerce.entity.Usuario;
@@ -34,6 +35,25 @@ public class UsuarioService {
 
     public List<UsuarioResponseDto> findAll() {
         return usuarioRepository.findAll().stream().map(UsuarioResponseDto::new).toList();
+    }
+
+    public AdminInfoResponseDto adminInfo(String adminEmail) {
+        Usuario admin = usuarioRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário admin não encontrado"));
+
+        if (admin.getRoles() != Roles.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso permitido apenas para ADMIN");
+        }
+
+        List<UsuarioResponseDto> usuarios = findAll();
+
+        AdminInfoResponseDto response = new AdminInfoResponseDto();
+        response.setMessage("Acesso ADMIN");
+        response.setAdminEmail(admin.getEmail());
+        response.setTotalUsers(usuarios.size());
+        response.setUsers(usuarios);
+
+        return response;
     }
 
     public UsuarioResponseDto findById(UUID id) {
@@ -98,5 +118,35 @@ public class UsuarioService {
         } catch (DataIntegrityViolationException ex) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Usuário está em uso e não pode ser removido", ex);
         }
+    }
+
+    public UsuarioResponseDto promoteToAdmin(UUID id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        if (usuario.getRoles() == Roles.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Usuário já é ADMIN");
+        }
+
+        usuario.setRoles(Roles.ADMIN);
+        usuarioRepository.save(usuario);
+        return new UsuarioResponseDto(usuario);
+    }
+
+    public UsuarioResponseDto createAdmin(UsuarioRequestDto dto) {
+        if (usuarioRepository.existsByEmail(dto.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado");
+        }
+
+        Usuario admin = new Usuario();
+        admin.setEmail(dto.getEmail());
+        admin.setSenha(passwordEncoder.encode(dto.getSenha()));
+        admin.setNome(dto.getNome());
+        admin.setTelefone(dto.getTelefone());
+        admin.setFotoUrl(dto.getFotoUrl());
+        admin.setRoles(Roles.ADMIN);
+
+        usuarioRepository.save(admin);
+        return new UsuarioResponseDto(admin);
     }
 }
